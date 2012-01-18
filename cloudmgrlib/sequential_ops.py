@@ -11,7 +11,7 @@ class SequentialOps( object ):
       self._datas 	= datas
       self._l_le_op 	= l_le_op
 
-   def operate( self ):
+   def process( self ):
       datas = self._datas
       for le in self._l_le_op:
          datas = le( datas )
