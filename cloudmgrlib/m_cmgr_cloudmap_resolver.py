@@ -102,6 +102,32 @@ class CloudManagerCloudMapResolver( object ):
         def eval_hostname( self, aera = None , appcode = None, env = None, appcomp = None, num_component = None ):
                 return '%s-%s-%s-%s-%s' % ( appcode, env, appcomp, num_component, aera )
 
+
+def with_cloudmap_resolver( o ):
+   """ Décorator recevant en paramètre un objet devant posséder un attribut cloudmap_resolver. 
+       Si o n'est pas fourni, o sera le premier élément de la fonction wrapped. C'est normalement le cas pour une méthode de classe ou un render dans le cas de nagare.
+       L'appel à la fonction fct est habillé d'un d'un 
+       with o.cloudmap_resolver as cloudmap_resolver
+       La variable ainsi obtenue, est passée à la fonction en l'ajoutant à kwargs sous le nom
+       with_cloudmap_resolver
+   """
+   
+   def wrapper( fct ):
+
+      def wrapped( *args, **kwargs ):  
+
+         assert( hasattr( o, 'cloudmap_resolver' ) ), u'%s %s doit posséder un attribut cloudmap_resolver' % ( __name__, o )
+
+         with o.cloudmap_resolver as cloudmap_resolver:
+         
+            kwargs.setdefault( 'with_cloudmap_resolver', cloudmap_resolver )
+
+            return fct( *args, **kwargs )
+
+      return wrapped
+
+   return wrapper
+
 def test_module():
 
 	cmcr =  CloudManagerCloudMapResolver()
