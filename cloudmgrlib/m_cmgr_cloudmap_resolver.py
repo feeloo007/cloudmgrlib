@@ -5,18 +5,18 @@ from m_cmgr_tools	import is_hostname_valid
 
 class CloudManagerCloudMapResolver( object ):
 	def __init__( self ):
-		self._cmr 	= CloudManagerResolver()
+		self._cmr 		= CloudManagerResolver()
                 self._cached_cloudmap 	= {}
-                self._ref_count = 0
+                self._ref_count 	= 0
 
         def __enter__( self ):
                 if not self._cached_cloudmap:
-                	self._cached_cloudmap = self.cloudmap.copy()
-                self._ref_count = self._ref_count + 1
+                	self._cached_cloudmap 	= self.cloudmap.copy()
+                self._ref_count 		= self._ref_count + 1
                 return self
 
         def __exit__( self, t, v, tr ):
-                self._ref_count = self._ref_count - 1
+                self._ref_count 	= self._ref_count - 1
                 if self._ref_count == 0:
                 	self._cached_cloudmap = {}
 
@@ -105,28 +105,47 @@ class CloudManagerCloudMapResolver( object ):
 
 def with_cloudmap_resolver( o ):
    """ Décorator recevant en paramètre un objet devant posséder un attribut cloudmap_resolver. 
-       Si o n'est pas fourni, o sera le premier élément de la fonction wrapped. C'est normalement le cas pour une méthode de classe ou un render dans le cas de nagare.
        L'appel à la fonction fct est habillé d'un d'un 
        with o.cloudmap_resolver as cloudmap_resolver
        La variable ainsi obtenue, est passée à la fonction en l'ajoutant à kwargs sous le nom
        with_cloudmap_resolver
    """
-   
+
    def wrapper( fct ):
+   
 
       def wrapped( *args, **kwargs ):  
 
          assert( hasattr( o, 'cloudmap_resolver' ) ), u'%s %s doit posséder un attribut cloudmap_resolver' % ( __name__, o )
 
          with o.cloudmap_resolver as cloudmap_resolver:
-         
+
             kwargs.setdefault( 'with_cloudmap_resolver', cloudmap_resolver )
 
-            return fct( *args, **kwargs )
+            result = fct( *args, **kwargs )
+
+            return result
 
       return wrapped
 
    return wrapper
+
+def with_cloudmap_resolver_for_render( fct ):
+   """ Version spécifique du décorator précédent à utiliser sur les méthodes render de nagare """
+
+   def wrapped( self, *args, **kwargs ):      
+
+      assert( hasattr( self, 'cloudmap_resolver' ) ), u'%s %s doit posséder un attribut cloudmap_resolver' % ( __name__, self )
+
+      with self.cloudmap_resolver as cloudmap_resolver:
+
+         kwargs.setdefault( 'with_cloudmap_resolver', cloudmap_resolver )
+
+         result = fct( self, *args, **kwargs )
+
+         return result
+
+   return wrapped
 
 def test_module():
 
