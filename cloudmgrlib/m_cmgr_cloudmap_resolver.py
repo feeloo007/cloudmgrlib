@@ -103,8 +103,10 @@ class CloudManagerCloudMapResolver( object ):
                 return '%s-%s-%s-%s-%s' % ( appcode, env, appcomp, num_component, aera )
 
 
-def with_cloudmap_resolver( o ):
+def with_cloudmap_resolver( o = None ):
    """ Décorator recevant en paramètre un objet devant posséder un attribut cloudmap_resolver. 
+       Si o est égal à None, le premier paramètre est considéré de *args est considéré comme 
+       étant le paramètre devant contenir l'attribut cloudmap_resolver.
        L'appel à la fonction fct est habillé d'un d'un 
        with o.cloudmap_resolver as cloudmap_resolver
        La variable ainsi obtenue, est passée à la fonction en l'ajoutant à kwargs sous le nom
@@ -112,13 +114,17 @@ def with_cloudmap_resolver( o ):
    """
 
    def wrapper( fct ):
-   
 
       def wrapped( *args, **kwargs ):  
 
-         assert( hasattr( o, 'cloudmap_resolver' ) ), u'%s %s doit posséder un attribut cloudmap_resolver' % ( __name__, o )
+         if not o:
+            the_object = args[ 0 ]
+         else:
+            the_object = o
+            
+         assert( hasattr( the_object, 'cloudmap_resolver' ) ), u'%s %s doit posséder un attribut cloudmap_resolver' % ( __name__, the_object )
 
-         with o.cloudmap_resolver as cloudmap_resolver:
+         with the_object.cloudmap_resolver as cloudmap_resolver:
 
             kwargs.setdefault( 'with_cloudmap_resolver', cloudmap_resolver )
 
@@ -130,22 +136,7 @@ def with_cloudmap_resolver( o ):
 
    return wrapper
 
-def with_cloudmap_resolver_for_render( fct ):
-   """ Version spécifique du décorator précédent à utiliser sur les méthodes render de nagare """
 
-   def wrapped( self, *args, **kwargs ):      
-
-      assert( hasattr( self, 'cloudmap_resolver' ) ), u'%s %s doit posséder un attribut cloudmap_resolver' % ( __name__, self )
-
-      with self.cloudmap_resolver as cloudmap_resolver:
-
-         kwargs.setdefault( 'with_cloudmap_resolver', cloudmap_resolver )
-
-         result = fct( self, *args, **kwargs )
-
-         return result
-
-   return wrapped
 
 def test_module():
 
